@@ -8,6 +8,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import br.furb.linguagensformais.trabalho3.exception.ControllerException;
+import br.furb.linguagensformais.trabalho3.exception.PalavraNaoAceitaException;
+import br.furb.linguagensformais.trabalho3.exception.ResultadoAnalisePalavraException;
+import br.furb.linguagensformais.trabalho3.exception.SimboloEspecialException;
 import br.furb.linguagensformais.trabalho3.model.AutomatoFinitoDeterministico;
 import br.furb.linguagensformais.trabalho3.model.EstadoAutomatoFinitoDeterministico;
 import br.furb.linguagensformais.trabalho3.model.ResultadoAnalisePalavra;
@@ -23,14 +26,16 @@ public class AutomatoFinitoDeterministicoController implements Controller {
 	private static final Character ESPACO = ' ';
 
 	private static final EstadoAutomatoFinitoDeterministico ESTADO_QERRO = new EstadoAutomatoFinitoDeterministico("qerro");
+
 	private static final String ERRO_PALAVRA_INVALIDA = "erro: palavra inválida";
 	private static final String ERRO_SIMBOLO_INVALIDO = "erro: símbolo(s) inválido(s)";
-	private static final String REGEX_QUEBRA_LINHA = "\\n";
-
 	private static final String MSG_PALAVRA_VAZIA = "Palavra vázia!";
-	private static final String SIMBOLO_ESPECIAL = "Símbolo especial";
 	private static final String PALAVRA_VALIDA = "Palavra válida";
 	private static final String PALAVRA_RESERVADA = "Palavra reservada";
+
+	private static final String REGEX_QUEBRA_LINHA = "\\n";
+	private static final int IDX_PRIMEIRO_CHAR_PALAVRA = 0;
+	private static final int IDX_SEGUNDO_CHAR_PALAVRA = 1;
 
 	static {
 		CARACTERES_ESPECIAIS.add(';');
@@ -109,49 +114,76 @@ public class AutomatoFinitoDeterministicoController implements Controller {
 		ResultadoAnalisePalavra resultadoAnalisePalavra = new ResultadoAnalisePalavra(palavra, idxLinha + 1);
 		Set<Character> alfabeto = automatoFinito.getAlfabeto();
 
-		EstadoAutomatoFinitoDeterministico estado = automatoFinito.getEstadoInicial();
-		boolean primeiraIteracao = true;
-		for (char caractere : palavra.toCharArray()) {
-			resultadoAnalisePalavra.adicionarReconhecimento(estado);
+		try {
+			EstadoAutomatoFinitoDeterministico estadoCorrente = primeiraIteracao(palavra, resultadoAnalisePalavra, alfabeto, automatoFinito.getEstadoInicial());
 
-			if (primeiraIteracao) {
-				if (CARACTERES_ESPECIAIS.contains(caractere)) {
-					resultadoAnalisePalavra.setResultado(SIMBOLO_ESPECIAL);
-					resultadoAnalisePalavra.adicionarReconhecimento(new EstadoAutomatoFinitoDeterministico("FALTA"));
-					return resultadoAnalisePalavra;
-				}
+			char caractere;
+			for (int idxCaractere = IDX_SEGUNDO_CHAR_PALAVRA; idxCaractere < palavra.length(); idxCaractere++) {
+				caractere = palavra.charAt(idxCaractere);
+				resultadoAnalisePalavra.adicionarReconhecimento(estadoCorrente);
+
+				validarCaractereForaAlfabeto(resultadoAnalisePalavra, alfabeto, caractere);
+				estadoCorrente = getProximoEstado(caractere, estadoCorrente);
 			}
 
-			if (!alfabeto.contains(caractere)) {
-				resultadoAnalisePalavra.setResultado(primeiraIteracao ? ERRO_SIMBOLO_INVALIDO : ERRO_PALAVRA_INVALIDA);
+			validarEstadoFinal(estadoCorrente);
+			definirResultado(palavra, resultadoAnalisePalavra, estadoCorrente);
+		} catch (ResultadoAnalisePalavraException e) {
+			resultadoAnalisePalavra.setResultado(e.getMessage());
+
+			if (e instanceof PalavraNaoAceitaException) {
 				resultadoAnalisePalavra.adicionarReconhecimento(ESTADO_QERRO);
-				return resultadoAnalisePalavra;
-			}
-
-			estado = estado.getConexoes().get(caractere);
-			if (null == estado) {
-				resultadoAnalisePalavra.setResultado(ERRO_PALAVRA_INVALIDA);
-				resultadoAnalisePalavra.adicionarReconhecimento(ESTADO_QERRO);
-				return resultadoAnalisePalavra;
-			}
-
-			if (primeiraIteracao) {
-				primeiraIteracao = false;
 			}
 		}
-
-		if (!estado.isEstadoFinal()) {
-			resultadoAnalisePalavra.setResultado(ERRO_PALAVRA_INVALIDA);
-			resultadoAnalisePalavra.adicionarReconhecimento(ESTADO_QERRO);
-		} else {
-			if (PALAVRAS_RESERVADAS.contains(palavra)) {
-				resultadoAnalisePalavra.setResultado(PALAVRA_RESERVADA);
-			} else {
-				resultadoAnalisePalavra.setResultado(PALAVRA_VALIDA);
-			}
-		}
-
 		return resultadoAnalisePalavra;
+	}
+
+	private void definirResultado(String palavra, ResultadoAnalisePalavra resultadoAnalisePalavra, EstadoAutomatoFinitoDeterministico estadoCorrente) {
+		resultadoAnalisePalavra.setResultado(PALAVRAS_RESERVADAS.contains(palavra) ? PALAVRA_RESERVADA : PALAVRA_VALIDA);
+		resultadoAnalisePalavra.adicionarReconhecimento(estadoCorrente);
+	}
+
+	private void validarEstadoFinal(EstadoAutomatoFinitoDeterministico estadoCorrente) throws PalavraNaoAceitaException {
+		if (!estadoCorrente.isEstadoFinal()) {
+			throw new PalavraNaoAceitaException(ERRO_PALAVRA_INVALIDA);
+		}
+	}
+
+	private void validarCaractereForaAlfabeto(ResultadoAnalisePalavra resultadoAnalisePalavra, Set<Character> alfabeto, char caractere) throws PalavraNaoAceitaException {
+		if (!alfabeto.contains(caractere)) {
+			throw new PalavraNaoAceitaException(ERRO_PALAVRA_INVALIDA);
+		}
+	}
+
+	private EstadoAutomatoFinitoDeterministico getProximoEstado(char caractere, EstadoAutomatoFinitoDeterministico estadoCorrente) throws PalavraNaoAceitaException {
+		estadoCorrente = estadoCorrente.getConexoes().get(caractere);
+		if (null == estadoCorrente) {
+			throw new PalavraNaoAceitaException(ERRO_PALAVRA_INVALIDA);
+		}
+		return estadoCorrente;
+	}
+
+	private EstadoAutomatoFinitoDeterministico primeiraIteracao(String palavra, ResultadoAnalisePalavra resultadoAnalisePalavra, Set<Character> alfabeto, EstadoAutomatoFinitoDeterministico estadoCorrente) throws ResultadoAnalisePalavraException {
+		resultadoAnalisePalavra.adicionarReconhecimento(estadoCorrente);
+
+		char caractere = palavra.charAt(IDX_PRIMEIRO_CHAR_PALAVRA);
+		validarCaractereEspecial(resultadoAnalisePalavra, caractere);
+		validarCaractereForaAlfabetoPrimeiraIteracao(alfabeto, caractere);
+
+		return getProximoEstado(caractere, estadoCorrente);
+	}
+
+	private void validarCaractereEspecial(ResultadoAnalisePalavra resultadoAnalisePalavra, char caractere) throws SimboloEspecialException {
+		if (CARACTERES_ESPECIAIS.contains(caractere)) {
+			resultadoAnalisePalavra.adicionarReconhecimento(new EstadoAutomatoFinitoDeterministico("FALTA"));
+			throw new SimboloEspecialException();
+		}
+	}
+
+	private void validarCaractereForaAlfabetoPrimeiraIteracao(Set<Character> alfabeto, char caractere) throws PalavraNaoAceitaException {
+		if (!alfabeto.contains(caractere)) {
+			throw new PalavraNaoAceitaException(ERRO_SIMBOLO_INVALIDO);
+		}
 	}
 
 	private List<String> getPalavras(String linha) {

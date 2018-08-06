@@ -7,8 +7,6 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -37,8 +35,6 @@ import br.furb.linguagensformais.trabalho3.view.components.TextLineNumber;
 public class LinguagemRegularView extends JFrame implements View {
 
 	private static final long serialVersionUID = -4983299331073437995L;
-
-	private final Executor executor = Executors.newFixedThreadPool(1);
 
 	private final JPanel contentPane;
 	private final JTextPane txtPaneCodigo = new JTextPane();
@@ -93,7 +89,7 @@ public class LinguagemRegularView extends JFrame implements View {
 				ResultadoExecucaoAutomatoFinito resultadoExecucaoAutomato = automatoFinitoDeterministicoController.executarAutomatoTrabalho3(palavras);
 				atualizarResultadoExcecucaoLinguagemRegular(resultadoExecucaoAutomato);
 
-				mostrarInfoDialog("Analizado!");
+				mostrarInfoDialog("Analise concluída!");
 			} catch (ControllerException e) {
 				mostrarErroDialog(e.getMessage());
 			} catch (Exception e) {
