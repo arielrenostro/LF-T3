@@ -1,5 +1,6 @@
 package br.furb.linguagensformais.trabalho3.view;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
@@ -20,6 +21,8 @@ import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 import br.furb.linguagensformais.trabalho3.controller.AutomatoFinitoDeterministicoController;
 import br.furb.linguagensformais.trabalho3.exception.ControllerException;
@@ -35,6 +38,14 @@ import br.furb.linguagensformais.trabalho3.view.components.TextLineNumber;
 public class LinguagemRegularView extends JFrame implements View {
 
 	private static final long serialVersionUID = -4983299331073437995L;
+
+	private static final int IDX_COLUNA_LINHA = 0;
+	private static final int IDX_COLUNA_RESULTADO = 1;
+
+	private static final int WIDTH_COLUNA_LINHA = 70;
+	private static final int WIDTH_COLUNA_RESULTADO = 180;
+	private static final int WIDTH_MIN = 200;
+	private static final int MARGEM = 10;
 
 	private final JPanel contentPane;
 	private final JTextPane txtPaneCodigo = new JTextPane();
@@ -100,6 +111,40 @@ public class LinguagemRegularView extends JFrame implements View {
 	}
 
 	private void atualizarResultadoExcecucaoLinguagemRegular(ResultadoExecucaoAutomatoFinito resultadoExecucaoAutomato) {
+		popularDadosTabela(resultadoExecucaoAutomato);
+		redimencionarTamanhoColunasTabela();
+	}
+
+	private void redimencionarTamanhoColunasTabela() {
+		TableColumn columnLinha = tblResultados.getColumnModel().getColumn(IDX_COLUNA_LINHA);
+		TableColumn columnResultado = tblResultados.getColumnModel().getColumn(IDX_COLUNA_RESULTADO);
+
+		setTamanhoColuna(columnLinha, WIDTH_COLUNA_LINHA);
+		setTamanhoColuna(columnResultado, WIDTH_COLUNA_RESULTADO);
+
+		for (int idxColuna = IDX_COLUNA_RESULTADO + 1; idxColuna < tblResultados.getColumnCount(); idxColuna++) {
+			TableColumn column = tblResultados.getColumnModel().getColumn(idxColuna);
+			int menorLargura = WIDTH_MIN;
+
+			for (int idxLinha = 0; idxLinha < tblResultados.getRowCount(); idxLinha++) {
+				TableCellRenderer cellRenderer = tblResultados.getCellRenderer(idxLinha, idxColuna);
+				Component c = tblResultados.prepareRenderer(cellRenderer, idxLinha, idxColuna);
+				int width = c.getPreferredSize().width + tblResultados.getIntercellSpacing().width;
+				menorLargura = Math.max(menorLargura, width);
+			}
+
+			menorLargura += MARGEM;
+			setTamanhoColuna(column, menorLargura);
+		}
+	}
+
+	private void setTamanhoColuna(TableColumn column, int largura) {
+		column.setMaxWidth(largura);
+		column.setMinWidth(largura);
+		column.setPreferredWidth(largura);
+	}
+
+	private void popularDadosTabela(ResultadoExecucaoAutomatoFinito resultadoExecucaoAutomato) {
 		List<ResultadoAnalisePalavra> resultadosAnalisePalavra = resultadoExecucaoAutomato.getResultadosAnalisePalavra();
 		DefaultTableModel tableModel = getTableModel();
 
@@ -166,9 +211,13 @@ public class LinguagemRegularView extends JFrame implements View {
 		scrollTblResultados.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		scrollTblResultados.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
+		tblResultados.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
 		contentPane.add(scrollCodigo);
 		contentPane.add(pnlBotoes);
 		contentPane.add(scrollTblResultados);
+
+		redimencionarTamanhoColunasTabela();
 	}
 
 	private void mostrarInfoDialog(String info) {

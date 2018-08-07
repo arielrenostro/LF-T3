@@ -13,7 +13,7 @@ import br.furb.linguagensformais.trabalho3.view.View;
 /**
  * @author ariel
  */
-public class SwingViewFactory {
+public abstract class SwingViewFactory {
 
 	private static final Map<String, View> instances = new HashMap<>();
 
