@@ -49,30 +49,57 @@ public class AutomatoFinitoDeterministicoController implements Controller {
 	}
 
 	private AutomatoFinitoDeterministico getAutomatoFinitoTrabalho3() {
-		EstadoAutomatoFinitoDeterministico estadoQ0 = new EstadoAutomatoFinitoDeterministico("q0", true);
-		EstadoAutomatoFinitoDeterministico estadoQ1 = new EstadoAutomatoFinitoDeterministico("q1");
-		EstadoAutomatoFinitoDeterministico estadoQ2 = new EstadoAutomatoFinitoDeterministico("q2");
-		EstadoAutomatoFinitoDeterministico estadoQ3 = new EstadoAutomatoFinitoDeterministico("q3");
-		EstadoAutomatoFinitoDeterministico estadoQ4 = new EstadoAutomatoFinitoDeterministico("q4");
-		EstadoAutomatoFinitoDeterministico estadoQ5 = new EstadoAutomatoFinitoDeterministico("q5");
-		EstadoAutomatoFinitoDeterministico estadoQ6 = new EstadoAutomatoFinitoDeterministico("q6");
+		EstadoAutomatoFinitoDeterministico estadoQ0 = new EstadoAutomatoFinitoDeterministico("q0");
+		EstadoAutomatoFinitoDeterministico estadoQ6 = new EstadoAutomatoFinitoDeterministico("q6", true);
 		EstadoAutomatoFinitoDeterministico estadoQ7 = new EstadoAutomatoFinitoDeterministico("q7");
-		EstadoAutomatoFinitoDeterministico estadoQ8 = new EstadoAutomatoFinitoDeterministico("q8");
+		EstadoAutomatoFinitoDeterministico estadoQ1Q5 = new EstadoAutomatoFinitoDeterministico("(q1q5)", true);
+		EstadoAutomatoFinitoDeterministico estadoQ2 = new EstadoAutomatoFinitoDeterministico("q2");
+		EstadoAutomatoFinitoDeterministico estadoQ0Q1 = new EstadoAutomatoFinitoDeterministico("(q0q1)", true);
+		EstadoAutomatoFinitoDeterministico estadoQ2Q6 = new EstadoAutomatoFinitoDeterministico("(q2q6)", true);
+		EstadoAutomatoFinitoDeterministico estadoQ3 = new EstadoAutomatoFinitoDeterministico("q3", true);
+		EstadoAutomatoFinitoDeterministico estadoQ4 = new EstadoAutomatoFinitoDeterministico("q4");
 
-		estadoQ0.adicionarConexao(estadoQ5, 'a');
-		estadoQ5.adicionarConexao(estadoQ0, 'a');
+		estadoQ0.adicionarConexao(estadoQ1Q5, 'a');
+		estadoQ0.adicionarConexao(estadoQ6, 'b');
+		estadoQ0.adicionarConexao(estadoQ6, 'c');
+
+		estadoQ6.adicionarConexao(estadoQ7, 'b');
+		estadoQ6.adicionarConexao(estadoQ7, 'c');
+
+		estadoQ7.adicionarConexao(estadoQ6, 'b');
+		estadoQ7.adicionarConexao(estadoQ6, 'c');
+
+		estadoQ1Q5.adicionarConexao(estadoQ0Q1, 'a');
+		estadoQ1Q5.adicionarConexao(estadoQ2, 'b');
+		estadoQ1Q5.adicionarConexao(estadoQ2, 'c');
+
+		estadoQ2.adicionarConexao(estadoQ3, 'a');
+
+		estadoQ0Q1.adicionarConexao(estadoQ1Q5, 'a');
+		estadoQ0Q1.adicionarConexao(estadoQ2Q6, 'b');
+		estadoQ0Q1.adicionarConexao(estadoQ2Q6, 'c');
+
+		estadoQ2Q6.adicionarConexao(estadoQ3, 'a');
+		estadoQ2Q6.adicionarConexao(estadoQ7, 'b');
+		estadoQ2Q6.adicionarConexao(estadoQ7, 'c');
+
+		estadoQ3.adicionarConexao(estadoQ4, 'a');
+		estadoQ3.adicionarConexao(estadoQ2, 'b');
+		estadoQ3.adicionarConexao(estadoQ2, 'c');
+
+		estadoQ4.adicionarConexao(estadoQ3, 'a');
 
 		AutomatoFinitoDeterministico automatoFinito = new AutomatoFinitoDeterministico();
 		automatoFinito.setEstadoInicial(estadoQ0);
 		automatoFinito.adicionarEstado(estadoQ0);
-		automatoFinito.adicionarEstado(estadoQ1);
-		automatoFinito.adicionarEstado(estadoQ2);
-		automatoFinito.adicionarEstado(estadoQ3);
-		automatoFinito.adicionarEstado(estadoQ4);
-		automatoFinito.adicionarEstado(estadoQ5);
 		automatoFinito.adicionarEstado(estadoQ6);
 		automatoFinito.adicionarEstado(estadoQ7);
-		automatoFinito.adicionarEstado(estadoQ8);
+		automatoFinito.adicionarEstado(estadoQ1Q5);
+		automatoFinito.adicionarEstado(estadoQ2);
+		automatoFinito.adicionarEstado(estadoQ0Q1);
+		automatoFinito.adicionarEstado(estadoQ2Q6);
+		automatoFinito.adicionarEstado(estadoQ3);
+		automatoFinito.adicionarEstado(estadoQ4);
 
 		return automatoFinito;
 	}
