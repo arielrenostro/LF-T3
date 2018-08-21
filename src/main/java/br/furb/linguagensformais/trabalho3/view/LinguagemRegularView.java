@@ -172,6 +172,7 @@ public class LinguagemRegularView extends JFrame implements View {
 		btLimpar.addActionListener((action) -> {
 			txtPaneCodigo.setText("");
 			tblResultados.setModel(getTableModel());
+			redimencionarTamanhoColunasTabela();
 			mostrarInfoDialog("Limpo!");
 		});
 	}

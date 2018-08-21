@@ -26,6 +26,7 @@ public class AutomatoFinitoDeterministicoController implements Controller {
 	private static final Character ESPACO = ' ';
 
 	private static final EstadoAutomatoFinitoDeterministico ESTADO_QERRO = new EstadoAutomatoFinitoDeterministico("qerro");
+	private static final EstadoAutomatoFinitoDeterministico ESTADO_QESPECIAL = new EstadoAutomatoFinitoDeterministico("qespecial");
 
 	private static final String ERRO_PALAVRA_INVALIDA = "erro: palavra inválida";
 	private static final String ERRO_SIMBOLO_INVALIDO = "erro: símbolo(s) inválido(s)";
@@ -202,7 +203,7 @@ public class AutomatoFinitoDeterministicoController implements Controller {
 
 	private void validarCaractereEspecial(ResultadoAnalisePalavra resultadoAnalisePalavra, char caractere) throws SimboloEspecialException {
 		if (CARACTERES_ESPECIAIS.contains(caractere)) {
-			resultadoAnalisePalavra.adicionarReconhecimento(new EstadoAutomatoFinitoDeterministico("FALTA"));
+			resultadoAnalisePalavra.adicionarReconhecimento(ESTADO_QESPECIAL);
 			throw new SimboloEspecialException();
 		}
 	}
